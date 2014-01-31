@@ -4,6 +4,11 @@ import pylab as pl
 from matplotlib.colors import ListedColormap
 from sklearn import datasets, neighbors
 
+"""
+PRML 2.5.2 再近傍法
+irisデータのK近傍法結果をプロット
+"""
+
 if __name__ == "__main__":
     # 近傍のいくつの点を見るか？
     K = 15
