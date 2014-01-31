@@ -95,6 +95,10 @@ class MultiLayerPerceptron:
             y = self.act2(np.dot(self.weight2, z))
 
             # 出力層の誤差を計算
+            # WARNING
+            # PRMLによると出力層の活性化関数にどれを用いても
+            # (y - t[i]) でよいと書いてあるが
+            # 下のように出力層の活性化関数の微分もかけた方が精度がずっとよくなる
             delta2 = self.act2_deriv(y) * (y - t[i])
 
             # 出力層の誤差を逆伝播させて隠れ層の誤差を計算
