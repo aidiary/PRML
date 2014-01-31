@@ -2,6 +2,7 @@
 import numpy as np
 from mlp import MultiLayerPerceptron
 from sklearn.datasets import load_digits
+from sklearn.cross_validation import train_test_split
 from sklearn.preprocessing import LabelBinarizer
 from sklearn.metrics import confusion_matrix, classification_report
 
@@ -10,25 +11,6 @@ from sklearn.metrics import confusion_matrix, classification_report
 scikit-learnのインストールが必要
 http://scikit-learn.org/
 """
-
-def train_test_split(X, y, test_rate=0.1):
-    """訓練データとテストデータに分割"""
-    # 訓練データと教師信号をシャッフル
-    num_samples= X.shape[0]
-    p = np.arange(num_samples)
-    np.random.seed(0)
-    np.random.shuffle(p)
-    X, y = X[p], y[p]
-
-    # 訓練データとテストデータに分ける
-    num_test = int(num_samples * test_rate)
-    num_train = num_samples - num_test
-    X_train = X[0:num_train, :]
-    X_test = X[num_train:num_samples, :]
-    y_train = y[0:num_train]
-    y_test = y[num_train:num_samples]
-
-    return X_train, X_test, y_train, y_test
 
 def draw_digits(digits):
     """数字データの最初の10サンプルを描画"""
@@ -58,7 +40,7 @@ if __name__ == "__main__":
     mlp = MultiLayerPerceptron(64, 100, 10, act1="tanh", act2="sigmoid")
 
     # 訓練データ（90%）とテストデータ（10%）に分解
-    X_train, X_test, y_train, y_test = train_test_split(X, y, 0.1)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.1)
 
     # 教師信号の数字を1-of-K表記に変換
     # 0 => [1, 0, 0, 0, 0, 0, 0, 0, 0, 0]

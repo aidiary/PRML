@@ -2,6 +2,7 @@
 import numpy as np
 from mlp import MultiLayerPerceptron
 from sklearn.datasets import fetch_mldata
+from sklearn.cross_validation import train_test_split
 from sklearn.preprocessing import LabelBinarizer
 from sklearn.metrics import confusion_matrix, classification_report
 
@@ -10,25 +11,6 @@ MNISTの手書き数字データの認識
 scikit-learnのインストールが必要
 http://scikit-learn.org/
 """
-
-def train_test_split(X, y, test_rate=0.1):
-    """訓練データとテストデータに分割"""
-    # 訓練データと教師信号をシャッフル
-    num_samples= X.shape[0]
-    p = np.arange(num_samples)
-    np.random.seed(0)
-    np.random.shuffle(p)
-    X, y = X[p], y[p]
-
-    # 訓練データとテストデータに分ける
-    num_test = int(num_samples * test_rate)
-    num_train = num_samples - num_test
-    X_train = X[0:num_train, :]
-    X_test = X[num_train:num_samples, :]
-    y_train = y[0:num_train]
-    y_test = y[num_train:num_samples]
-
-    return X_train, X_test, y_train, y_test
 
 def draw_digits(mnist):
     """数字データの10サンプルをランダムに描画"""
@@ -50,7 +32,7 @@ if __name__ == "__main__":
     mnist = fetch_mldata('MNIST original', data_home=".")
 
     # 数字データのサンプルを描画
-    draw_digits(mnist)
+#    draw_digits(mnist)
 
     # 訓練データを作成
     X = mnist.data
@@ -64,7 +46,7 @@ if __name__ == "__main__":
     mlp = MultiLayerPerceptron(28*28, 100, 10)
 
     # 訓練データとテストデータに分解
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_rate=0.1)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.1)
 
     # 教師信号の数字を1-of-K表記に変換
     labels_train = LabelBinarizer().fit_transform(y_train)
