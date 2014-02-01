@@ -44,6 +44,7 @@ if __name__ == "__main__":
     predictions = []
     for i in range(X_test.shape[0]):
         o = mlp.predict(X_test[i])
+        # 最大の出力を持つクラスに分類
         predictions.append(np.argmax(o))
     print confusion_matrix(y_test, predictions)
     print classification_report(y_test, predictions)
