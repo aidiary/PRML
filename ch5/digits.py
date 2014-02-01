@@ -59,6 +59,7 @@ if __name__ == "__main__":
             error_idx.append(idx)
             cnt += 1
 
+    # 描画
     import pylab
     for i, idx in enumerate(error_idx):
         pylab.subplot(cnt/5 + 1, 5, i + 1)
