@@ -48,3 +48,22 @@ if __name__ == "__main__":
         predictions.append(np.argmax(o))
     print confusion_matrix(y_test, predictions)
     print classification_report(y_test, predictions)
+
+    # 誤認識したデータのみ描画
+    # 誤認識データ数と誤っているテストデータのidxを収集
+    cnt = 0
+    error_idx = []
+    for idx in range(len(y_test)):
+        if y_test[idx] != predictions[idx]:
+            print "error: %d : %d => %d" % (idx, y_test[idx], predictions[idx])
+            error_idx.append(idx)
+            cnt += 1
+
+    import pylab
+    for i, idx in enumerate(error_idx):
+        pylab.subplot(cnt/5 + 1, 5, i + 1)
+        pylab.axis('off')
+        pylab.imshow(X_test[idx].reshape((8, 8)), cmap=pylab.cm.gray_r)
+        pylab.title('%d : %i => %i' % (idx, y_test[idx], predictions[idx]))
+    pylab.show()
+
