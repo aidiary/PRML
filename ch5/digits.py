@@ -12,23 +12,10 @@ scikit-learnのインストールが必要
 http://scikit-learn.org/
 """
 
-def draw_digits(digits):
-    """数字データの最初の10サンプルを描画"""
-    import pylab
-    for index, (image, label) in enumerate(zip(digits.images, digits.target)[:10]):
-        pylab.subplot(2, 5, index + 1)
-        pylab.axis('off')
-        pylab.imshow(image, cmap=pylab.cm.gray_r, interpolation='nearest')
-        pylab.title('%i' % label)
-    pylab.show()
-
 if __name__ == "__main__":
     # scikit-learnの簡易数字データをロード
     # 1797サンプル, 8x8ピクセル
     digits = load_digits()
-
-    # 数字データのサンプルを描画
-#     draw_digits(digits)
 
     # 訓練データを作成
     X = digits.data

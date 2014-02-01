@@ -3,6 +3,7 @@ import numpy as np
 import sys
 
 """
+mlp.py
 多層パーセプトロン
 forループの代わりに行列演算にした高速化版
 
