@@ -43,7 +43,7 @@ if __name__ == "__main__":
     X /= X.max()
 
     # 多層パーセプトロンを構築
-    mlp = MultiLayerPerceptron(28*28, 100, 10)
+    mlp = MultiLayerPerceptron(28*28, 100, 10, act1="tanh", act2="softmax")
 
     # 訓練データとテストデータに分解
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.1)
@@ -53,7 +53,7 @@ if __name__ == "__main__":
     labels_test = LabelBinarizer().fit_transform(y_test)
 
     # 訓練データを用いてニューラルネットの重みを学習
-    mlp.fit(X_train, labels_train, epochs=50000)
+    mlp.fit(X_train, labels_train, learning_rate=0.01, epochs=50000)
 
     # テストデータを用いて予測精度を計算
     predictions = []

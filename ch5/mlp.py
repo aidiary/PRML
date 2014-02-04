@@ -30,6 +30,10 @@ def identity(x):
 def identity_deriv(x):
     return 1
 
+def softmax(x):
+    temp = np.exp(x)
+    return temp / np.sum(temp)
+
 class MultiLayerPerceptron:
     def __init__(self, numInput, numHidden, numOutput, act1="tanh", act2="sigmoid"):
         """多層パーセプトロンを初期化
@@ -51,17 +55,17 @@ class MultiLayerPerceptron:
             sys.exit()
 
         # 引数の指定に合わせて出力層の活性化関数とその微分関数を設定
+        # 交差エントロピー誤差関数を使うので出力層の活性化関数の微分は不要
         if act2 == "tanh":
             self.act2 = tanh
-            self.act2_deriv = tanh_deriv
         elif act2 == "sigmoid":
             self.act2 = sigmoid
-            self.act2_deriv = sigmoid_deriv
+        elif act2 == "softmax":
+            self.act2 = softmax
         elif act2 == "identity":
             self.act2 = identity
-            self.act2_deriv = identity_deriv
         else:
-            print "ERROR: act2 is tanh or sigmoid or identity"
+            print "ERROR: act2 is tanh or sigmoid or softmax or identity"
             sys.exit()
 
         # バイアスユニットがあるので入力層と隠れ層は+1
@@ -73,7 +77,7 @@ class MultiLayerPerceptron:
         self.weight1 = np.random.uniform(-1.0, 1.0, (self.numHidden, self.numInput))  # 入力層-隠れ層間
         self.weight2 = np.random.uniform(-1.0, 1.0, (self.numOutput, self.numHidden)) # 隠れ層-出力層間
 
-    def fit(self, X, t, learning_rate=0.2, epochs=10000):
+    def fit(self, X, t, learning_rate=0.1, epochs=10000):
         """訓練データを用いてネットワークの重みを更新する"""
         # 入力データの最初の列にバイアスユニットの入力1を追加
         X = np.hstack([np.ones([X.shape[0], 1]), X])
@@ -94,12 +98,8 @@ class MultiLayerPerceptron:
             # 中間層の出力を順伝播させて出力層の出力を計算
             y = self.act2(np.dot(self.weight2, z))
 
-            # 出力層の誤差を計算
-            # WARNING
-            # PRMLによると出力層の活性化関数にどれを用いても
-            # (y - t[i]) でよいと書いてあるが
-            # 下のように出力層の活性化関数の微分もかけた方が精度がずっとよくなる
-            delta2 = self.act2_deriv(y) * (y - t[i])
+            # 出力層の誤差を計算（交差エントロピー誤差関数を使用）
+            delta2 = y - t[i]
 
             # 出力層の誤差を逆伝播させて隠れ層の誤差を計算
             delta1 = self.act1_deriv(z) * np.dot(self.weight2.T, delta2)
