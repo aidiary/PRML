@@ -12,23 +12,10 @@ scikit-learnのインストールが必要
 http://scikit-learn.org/
 """
 
-def draw_digits(digits):
-    """数字データの最初の10サンプルを描画"""
-    import pylab
-    for index, (image, label) in enumerate(zip(digits.images, digits.target)[:10]):
-        pylab.subplot(2, 5, index + 1)
-        pylab.axis('off')
-        pylab.imshow(image, cmap=pylab.cm.gray_r, interpolation='nearest')
-        pylab.title('%i' % label)
-    pylab.show()
-
 if __name__ == "__main__":
     # scikit-learnの簡易数字データをロード
     # 1797サンプル, 8x8ピクセル
     digits = load_digits()
-
-    # 数字データのサンプルを描画
-#     draw_digits(digits)
 
     # 訓練データを作成
     X = digits.data
@@ -57,6 +44,27 @@ if __name__ == "__main__":
     predictions = []
     for i in range(X_test.shape[0]):
         o = mlp.predict(X_test[i])
+        # 最大の出力を持つクラスに分類
         predictions.append(np.argmax(o))
     print confusion_matrix(y_test, predictions)
     print classification_report(y_test, predictions)
+
+    # 誤認識したデータのみ描画
+    # 誤認識データ数と誤っているテストデータのidxを収集
+    cnt = 0
+    error_idx = []
+    for idx in range(len(y_test)):
+        if y_test[idx] != predictions[idx]:
+            print "error: %d : %d => %d" % (idx, y_test[idx], predictions[idx])
+            error_idx.append(idx)
+            cnt += 1
+
+    # 描画
+    import pylab
+    for i, idx in enumerate(error_idx):
+        pylab.subplot(cnt/5 + 1, 5, i + 1)
+        pylab.axis('off')
+        pylab.imshow(X_test[idx].reshape((8, 8)), cmap=pylab.cm.gray_r)
+        pylab.title('%d : %i => %i' % (idx, y_test[idx], predictions[idx]))
+    pylab.show()
+
