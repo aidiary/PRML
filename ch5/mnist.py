@@ -12,27 +12,12 @@ scikit-learnのインストールが必要
 http://scikit-learn.org/
 """
 
-def draw_digits(mnist):
-    """数字データの10サンプルをランダムに描画"""
-    import pylab
-    np.random.seed(0)
-    p = np.random.random_integers(0, len(mnist.data), 10)
-    for index, (data, label) in enumerate(np.array(zip(mnist.data, mnist.target))[p]):
-        pylab.subplot(2, 5, index + 1)
-        pylab.axis('off')
-        pylab.imshow(data.reshape(28, 28), cmap=pylab.cm.gray_r, interpolation='nearest')
-        pylab.title('%i' % label)
-    pylab.show()
-
 if __name__ == "__main__":
     # MNISTの数字データ
     # 70000サンプル, 28x28ピクセル
     # カレントディレクトリ（.）にmnistデータがない場合は
     # Webから自動的にダウンロードされる（時間がかかる）
     mnist = fetch_mldata('MNIST original', data_home=".")
-
-    # 数字データのサンプルを描画
-#    draw_digits(mnist)
 
     # 訓練データを作成
     X = mnist.data
