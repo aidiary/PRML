@@ -10,7 +10,7 @@ forループの代わりに行列演算にした高速化版
 入力層 - 隠れ層 - 出力層の3層構造で固定（PRMLではこれを2層と呼んでいる）
 
 隠れ層の活性化関数にはtanh関数またはsigmoid logistic関数が使える
-出力層の活性化関数にはtanh関数、sigmoid logistic関数、恒等関数が使える
+出力層の活性化関数にはtanh関数、sigmoid logistic関数、恒等関数、softmax関数が使える
 """
 
 def tanh(x):
@@ -42,7 +42,7 @@ class MultiLayerPerceptron:
         numHidden   隠れ層のユニット数（バイアスユニットは除く）
         numOutput   出力層のユニット数
         act1        隠れ層の活性化関数（tanh or sigmoid）
-        act2        出力層の活性化関数（tanh or sigmoid or identity）
+        act2        出力層の活性化関数（tanh or sigmoid or identity or softmax）
         """
         # 引数の指定に合わせて隠れ層の活性化関数とその微分関数を設定
         if act1 == "tanh":
