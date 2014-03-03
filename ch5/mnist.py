@@ -38,7 +38,7 @@ if __name__ == "__main__":
     labels_test = LabelBinarizer().fit_transform(y_test)
 
     # 訓練データを用いてニューラルネットの重みを学習
-    mlp.fit(X_train, labels_train, learning_rate=0.01, epochs=50000)
+    mlp.fit(X_train, labels_train, learning_rate=0.01, epochs=100000)
 
     # テストデータを用いて予測精度を計算
     predictions = []
