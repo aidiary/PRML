@@ -23,4 +23,4 @@ for i, (train_indices, test_indices) in enumerate(kfold):
 scores = cross_validation.cross_val_score(svc, X_digits, y_digits, cv=kfold, n_jobs=-1)
 
 print scores
-print "Average:", np.average(scores)
+print "mean:", np.mean(scores)

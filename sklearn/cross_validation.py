@@ -33,4 +33,4 @@ for k in range(K):
     scores.append(svc.fit(X_train, y_train).score(X_test, y_test))
 
 print scores
-print "Average:", np.average(scores)
+print "mean:", np.mean(scores)
