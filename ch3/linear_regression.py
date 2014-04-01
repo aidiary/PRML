@@ -54,6 +54,8 @@ if __name__ == "__main__":
 
     # 勾配降下法でパラメータ推定
     theta, J_history = gradientDescent(X, y, theta, alpha, iterations)
+    print "theta:", theta
+    print "final cost:", J_history[-1]
 
     # コストの履歴をプロット
     plt.figure(2)
