@@ -72,10 +72,9 @@ if __name__ == "__main__":
     print "3.5 => %f" % predict1
     print "7.0 => %f" % predict2
 
-    # J(theta)を可視化
+    # J(theta)の三次元プロット
     fig = plt.figure(3)
     ax = fig.gca(projection='3d')
-
     gridsize = 200
     theta0_vals = np.linspace(-10, 10, gridsize)
     theta1_vals = np.linspace(-1, 4, gridsize)
@@ -89,8 +88,10 @@ if __name__ == "__main__":
     plt.xlabel("theta_0")
     plt.ylabel("theta_1")
 
-    # Contour Plot
+    # 等高線を描画
     fig = plt.figure(4)
     plt.contour(theta0_vals, theta1_vals, J_vals, np.logspace(-2, 3, 20))
     plt.plot(theta[0], theta[1], 'rx', markersize=10, linewidth=2)
+    plt.xlabel("theta_0")
+    plt.ylabel("theta_1")
     plt.show()
