@@ -30,7 +30,8 @@ def gradientDescent(X, y, theta, alpha, iterations):
     J_history = []  # 各更新でのコスト
     for iter in range(iterations):
         # sigmoid関数を適用する点が線形回帰と異なる
-        theta = theta - alpha * (1.0 / m) * np.dot(X.T, sigmoid(np.dot(X, theta)) - y)
+        h = sigmoid(np.dot(X, theta))
+        theta = theta - alpha * (1.0 / m) * np.dot(X.T, h - y)
         J_history.append(computeCost(X, y, theta))
     return theta, J_history
 
