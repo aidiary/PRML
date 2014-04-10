@@ -1,6 +1,7 @@
 #coding: utf-8
 import numpy as np
 import matplotlib.pyplot as plt
+import scipy.optimize
 
 """
 正則化ロジスティック回帰
@@ -42,14 +43,25 @@ def computeCost(X, y, theta, lam):
     J += lam / (2 * m) * np.sum(temp * temp)
     return J
 
-def gradientDescent(X, y, theta, alpha, iterations):
-    m = len(y)      # 訓練データ数
-    J_history = []  # 各更新でのコスト
-    for iter in range(iterations):
-        # sigmoid関数を適用する点が線形回帰と異なる
-        theta = theta - alpha * (1.0 / m) * np.dot(X.T, sigmoid(np.dot(X, theta)) - y)
-        J_history.append(computeCost(X, y, theta))
-    return theta, J_history
+def costFunction(theta, X, y, lam):
+    # コスト関数を計算
+    h = sigmoid(np.dot(X, theta))
+    J = (1.0 / m) * np.sum(-y * np.log(h) - (1 - y) * np.log(1 - h)) + lam / (2 * m) * np.sum(theta[1:] ** 2)
+    
+    m = X.shape[0]
+
+    def J(x, *args):
+        theta = x
+        lam = args[0]
+
+    # その微分を計算
+    def gradJ(x, *args):
+        
+    grad = np.zeros(theta.shape[0])
+    grad[0] = (1.0 / m) * np.sum(h - y)
+    grad[1:] = (1.0 / m) * np.dot(X[:,1:].T, h - y) + (lam / m) * theta[1:]
+
+    return J, grad
 
 if __name__ == "__main__":
     # 訓練データをロード
@@ -69,20 +81,16 @@ if __name__ == "__main__":
     mapFeature(X[:, 0], X[:, 1])
 
     # パラメータを0で初期化
-    theta = np.zeros(X.shape[1])
-    iterations = 300000
-    alpha = 0.001
+    initial_theta = np.zeros(X.shape[1])
     lam = 1.0
 
-    # 初期状態のコストを計算
-    initialCost = computeCost(X, y, theta, lam)
-    print "initial cost:", initialCost
-    exit()
+    # 初期パラメータから求めたコスト関数とその微分を返す
+    cost, grad = costFunction(initial_theta, X, y, lam)
 
-    # 勾配降下法でパラメータ推定
-    theta, J_history = gradientDescent(X, y, theta, alpha, iterations)
-    print "theta:", theta
-    print "final cost:", J_history[-1]
+    # Conjugate Gradientでコスト関数を最適化するパラメータを求める
+    res = scipy.optimize.fmin_cg(cost, initial_theta, fprime=grad)
+    print res
+    exit()
 
     # コストの履歴をプロット
     plt.figure(2)
