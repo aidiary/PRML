@@ -1,6 +1,7 @@
 #coding: utf-8
 import numpy as np
 import matplotlib.pyplot as plt
+from scipy import optimize
 
 """
 ロジスティック回帰
@@ -19,21 +20,22 @@ def plotData(X, y):
 def sigmoid(z):
     return 1.0 / (1 + np.exp(-z))
 
-def computeCost(X, y, theta):
-    # 二乗誤差関数ではなく、交差エントロピー誤差関数を使用
+def J(theta, *args):
+    """コスト関数"""
+    def safe_log(x, minval=0.0000000001):
+        return np.log(x.clip(min=minval))
+    X, y = args
+    m = len(y)
     h = sigmoid(np.dot(X, theta))
-    J = (1.0 / m) * np.sum(-y * np.log(h) - (1 - y) * np.log(1 - h))
-    return J
+    return (1.0 / m) * np.sum(-y * safe_log(h) - (1 - y) * safe_log(1 - h))
 
-def gradientDescent(X, y, theta, alpha, iterations):
-    m = len(y)      # 訓練データ数
-    J_history = []  # 各更新でのコスト
-    for iter in range(iterations):
-        # sigmoid関数を適用する点が線形回帰と異なる
-        h = sigmoid(np.dot(X, theta))
-        theta = theta - alpha * (1.0 / m) * np.dot(X.T, h - y)
-        J_history.append(computeCost(X, y, theta))
-    return theta, J_history
+def gradient(theta, *args):
+    """コスト関数Jの偏微分"""
+    X, y = args
+    m = len(y)
+    h = sigmoid(np.dot(X, theta))
+    grad = (1.0 / m) * np.dot(X.T, h - y)
+    return grad
 
 if __name__ == "__main__":
     # 訓練データをロード
@@ -51,25 +53,16 @@ if __name__ == "__main__":
     X = X.reshape((m, 2))
     X = np.hstack((np.ones((m, 1)), X))
 
-    # パラメータを0で初期化
-    theta = np.zeros(3)
-    iterations = 300000
-    alpha = 0.001
+    # パラメータを0で初期化;
+    initial_theta = np.zeros(3)
 
     # 初期状態のコストを計算
-    initialCost = computeCost(X, y, theta)
-    print "initial cost:", initialCost
+    print "initial cost:", J(initial_theta, X, y)
 
-    # 勾配降下法でパラメータ推定
-    theta, J_history = gradientDescent(X, y, theta, alpha, iterations)
+    # Conjugate Gradientでパラメータ推定
+    theta = optimize.fmin_cg(J, initial_theta, fprime=gradient, args=(X, y))
     print "theta:", theta
-    print "final cost:", J_history[-1]
-
-    # コストの履歴をプロット
-    plt.figure(2)
-    plt.plot(J_history)
-    plt.xlabel("iteration")
-    plt.ylabel("J(theta)")
+    print "final cost:", J(theta, X, y)
 
     # 決定境界を描画
     plt.figure(1)
