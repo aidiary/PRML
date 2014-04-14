@@ -8,8 +8,7 @@ Conjugate Gradientによるコスト関数を最小化する
 """
 
 def J(theta, *args):
-    """最小化を目指すコスト関数を返す
-    xはパラメータリスト"""
+    """最小化を目指すコスト関数を返す"""
     theta1, theta2 = theta
     return (theta1 - 5) ** 2 + (theta2 - 5) ** 2
 
