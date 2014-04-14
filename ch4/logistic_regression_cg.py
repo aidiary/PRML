@@ -5,7 +5,7 @@ from scipy import optimize
 
 """
 ロジスティック回帰
-共役勾配法（conjugate gradient method）で解く
+共役勾配法（Conjugate Gradient Method）で解く
 """
 
 def plotData(X, y):

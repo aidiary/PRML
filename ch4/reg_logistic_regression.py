@@ -6,7 +6,7 @@ from scipy import optimize
 """
 正則化ロジスティック回帰
 高次元の特徴量を追加することで曲線でデータを分類する
-共役勾配法で解く
+共役勾配法（Conjugate Gradient）で解く
 """
 
 def plotData(X, y):
@@ -18,9 +18,11 @@ def plotData(X, y):
     plt.scatter(X[positive, 0], X[positive, 1], c='red', marker='o', label="positive")
     plt.scatter(X[negative, 0], X[negative, 1], c='blue', marker='o', label="negative")
 
-def mapFeature(X1, X2):
-    degree = 6
-
+def mapFeature(X1, X2, degree=6):
+    """
+    特徴X1と特徴X2を組み合わせたdegree次の項まで特徴をデータに追加
+    バイアス項に対応するデータ1も追加
+    """
     # データ行列に1を追加
     m = X1.shape[0]
     X = np.ones((m, 1))
@@ -34,14 +36,16 @@ def sigmoid(z):
     return 1.0 / (1 + np.exp(-z))
 
 def J(theta, *args):
+    """正則化ロジスティック回帰のコスト関数"""
     def safe_log(x, minval=0.0000000001):
         return np.log(x.clip(min=minval))
     X, y, lam = args
     # 二乗誤差関数ではなく、交差エントロピー誤差関数を使用
     h = sigmoid(np.dot(X, theta))
-    return (1.0 / m) * np.sum(-y * np.log(h) - (1 - y) * np.log(1 - h)) + lam / (2 * m) * np.sum(theta[1:] ** 2)
+    return (1.0 / m) * np.sum(-y * safe_log(h) - (1 - y) * safe_log(1 - h)) + lam / (2 * m) * np.sum(theta[1:] ** 2)
 
 def gradient(theta, *args):
+    """コスト関数の各パラメータでの偏微分のリストを返す"""
     X, y, lam = args
     h = sigmoid(np.dot(X, theta))
     grad = np.zeros(theta.shape[0])
@@ -62,9 +66,9 @@ if __name__ == "__main__":
     plotData(X, y)
 
     # 特徴量のマッピング
-    # 元の特徴量の多項式項を追加
+    # 元の特徴量の6次までの多項式項を追加
     # 1列目の1も追加する
-    X = mapFeature(X[:, 0], X[:, 1])
+    X = mapFeature(X[:, 0], X[:, 1], 6)
 
     # パラメータを0で初期化
     initial_theta = np.zeros(X.shape[1])
@@ -74,7 +78,8 @@ if __name__ == "__main__":
     print "initial cost:", J(initial_theta, X, y, lam)
 
     # Conjugate Gradientでコスト関数を最適化するパラメータを求める
-    theta = optimize.fmin_cg(J, initial_theta, fprime=gradient, args=(X, y, lam), gtol=1e-10)
+    # コスト関数Jとその偏微分gradientの関数オブジェクトを渡す
+    theta = optimize.fmin_cg(J, initial_theta, fprime=gradient, args=(X, y, lam))
     print "theta:", theta
     print "final cost:", J(theta, X, y, lam)
 
@@ -90,6 +95,7 @@ if __name__ == "__main__":
             x1 = np.array([x1_vals[i, j]])
             x2 = np.array([x2_vals[i, j]])
             z[i, j] = np.dot(mapFeature(x1, x2), theta)
+
     # 決定境界はsigmoid(z)=0.5、すなわちz=0の場所
     plt.contour(x1_vals, x2_vals, z, levels=[0])
     plt.xlabel("x1")
