@@ -19,10 +19,13 @@ def plotData(X, y):
 def sigmoid(z):
     return 1.0 / (1 + np.exp(-z))
 
+def safe_log(x, minval=0.0000000001):
+    return np.log(x.clip(min=minval))
+
 def computeCost(X, y, theta):
     # 二乗誤差関数ではなく、交差エントロピー誤差関数を使用
     h = sigmoid(np.dot(X, theta))
-    J = (1.0 / m) * np.sum(-y * np.log(h) - (1 - y) * np.log(1 - h))
+    J = (1.0 / m) * np.sum(-y * safe_log(h) - (1 - y) * safe_log(1 - h))
     return J
 
 def gradientDescent(X, y, theta, alpha, iterations):
@@ -32,7 +35,9 @@ def gradientDescent(X, y, theta, alpha, iterations):
         # sigmoid関数を適用する点が線形回帰と異なる
         h = sigmoid(np.dot(X, theta))
         theta = theta - alpha * (1.0 / m) * np.dot(X.T, h - y)
-        J_history.append(computeCost(X, y, theta))
+        cost = computeCost(X, y, theta)
+        print iter, cost
+        J_history.append(cost)
     return theta, J_history
 
 if __name__ == "__main__":
