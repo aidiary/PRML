@@ -159,7 +159,7 @@ if __name__ == "__main__":
     # NNはコスト関数と偏微分の計算を同じ関数（nnCostFunction）で行うので
     # fmin_cgではなくminimizeを使用する
     # minimize()はscipy 0.11.0以上が必要
-    nn_params = optimize.minimize(func=nnCostFunction, x0=initial_nn_params, method="CG",
+    nn_params = optimize.minimize(func=nnCostFunction, x0=initial_nn_params, method="CG", jac=True,
                                   options={'maxiter':20, 'disp':True},
                                   args=(in_size, hid_size, num_labels, X, y, lam))
 
