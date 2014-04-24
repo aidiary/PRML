@@ -48,53 +48,7 @@ def sigmoidGradient(z):
 def safe_log(x, minval=0.0000000001):
     return np.log(x.clip(min=minval))
 
-def J(nn_params, *args):
-    """ニューラルネットのコスト関数
-    コスト関数を求めるためにはforward propagationだけすればOK"""
-    in_size, hid_size, num_labels, X, y, lam = args
-
-    # ニューラルネットの全パラメータを行列形式に復元
-    Theta1 = nn_params[0:(in_size + 1) * hid_size].reshape((hid_size, in_size + 1))
-    Theta2 = nn_params[(in_size + 1) * hid_size:].reshape((num_labels, hid_size + 1))
-
-    # 訓練データ数
-    m = X.shape[0]
-
-    # 訓練データの1列目にバイアス項に対応する1を追加
-    X = np.hstack((np.ones((m, 1)), X))
-
-    # 教師ラベルを1-of-K表記に変換
-    lb = LabelBinarizer()
-    lb.fit(y)
-    y = lb.transform(y)
-
-    J = 0
-    for i in range(m):
-        xi = X[i, :]
-        yi = y[i]
-        # forward propagation
-        a1 = xi
-        z2 = np.dot(Theta1, a1)
-        a2 = sigmoid(z2)
-        a2 = np.hstack((1, a2))
-        z3 = np.dot(Theta2, a2)
-        a3 = sigmoid(z3)
-        J += sum(-yi * safe_log(a3) - (1 - yi) * safe_log(1 - a3))
-    J /= m
-
-    # 正則化項
-    temp = 0.0;
-    for j in range(hid_size):
-        for k in range(1, in_size + 1):  # バイアスに対応する重みは加えない
-            temp += Theta1[j, k] ** 2
-    for j in range(num_labels):
-        for k in range(1, hid_size + 1): # バイアスに対応する重みは加えない
-            temp += Theta2[j, k] ** 2
-    J += lam / (2.0 * m) * temp;
-
-    return J
-
-def gradient(nn_params, *args):
+def nnCostFunction(nn_params, *args):
     """コスト関数Jの偏微分
     偏微分を求めるためには各層の誤差が必要なのでbackpropagationも必要
     Jを求めるときにforward propagationはしているので無駄あり"""
@@ -130,6 +84,7 @@ def gradient(nn_params, *args):
         a2 = np.hstack((1, a2))
         z3 = np.dot(Theta2, a2)
         a3 = sigmoid(z3)
+        J += sum(-yi * safe_log(a3) - (1 - yi) * safe_log(1 - a3))
         # backpropagation
         delta3 = a3 - yi
         delta2 = np.dot(Theta2.T, delta3) * sigmoidGradient(np.hstack((1, z2)))
@@ -145,6 +100,19 @@ def gradient(nn_params, *args):
         Theta1_grad += np.dot(delta2, a1.T)
         Theta2_grad += np.dot(delta3, a2.T)
 
+    J /= m
+
+    # コスト関数の正則化項
+    temp = 0.0;
+    for j in range(hid_size):
+        for k in range(1, in_size + 1):  # バイアスに対応する重みは加えない
+            temp += Theta1[j, k] ** 2
+    for j in range(num_labels):
+        for k in range(1, hid_size + 1): # バイアスに対応する重みは加えない
+            temp += Theta2[j, k] ** 2
+    J += lam / (2.0 * m) * temp;
+
+    # 偏微分の正則化項
     Theta1_grad /= m
     Theta1_grad[:, 1:] += (lam / m) * Theta1_grad[:, 1:]
     Theta2_grad /= m
@@ -153,11 +121,13 @@ def gradient(nn_params, *args):
     # ベクトルに変換
     grad = np.hstack((np.ravel(Theta1_grad), np.ravel(Theta2_grad)))
 
-    return grad
+    print J
+
+    return J, grad
 
 if __name__ == "__main__":
-    input_layer_size = 64
-    hidden_layer_size = 25
+    in_size = 64
+    hid_size = 25
     num_labels = 10
 
     # 訓練データをロード
@@ -170,8 +140,8 @@ if __name__ == "__main__":
 #    displayData(X)
 
     # パラメータをランダムに初期化
-    initial_Theta1 = randInitializeWeights(input_layer_size, hidden_layer_size)
-    initial_Theta2 = randInitializeWeights(hidden_layer_size, num_labels)
+    initial_Theta1 = randInitializeWeights(in_size, hid_size)
+    initial_Theta2 = randInitializeWeights(hid_size, num_labels)
     # 行列ではなくベクトルに展開
     initial_nn_params = np.hstack((np.ravel(initial_Theta1), np.ravel(initial_Theta2)))
     print initial_Theta1.shape
@@ -182,8 +152,21 @@ if __name__ == "__main__":
     lam = 1.0
 
     # 初期状態のコストを計算
-    print "initial cost:", J(initial_nn_params, input_layer_size, hidden_layer_size, num_labels, X, y, lam)
+    J, grad = nnCostFunction(initial_nn_params, in_size, hid_size, num_labels, X, y, lam)
+    print "initial cost:", J
 
     # Conjugate Gradientでパラメータ推定
-    nn_params = optimize.fmin_bfgs(J, initial_nn_params, fprime=gradient,
-                                 args=(input_layer_size, hidden_layer_size, num_labels, X, y, lam))
+    # NNはコスト関数と偏微分の計算を同じ関数（nnCostFunction）で行うので
+    # fmin_cgではなくminimizeを使用する
+    # minimize()はscipy 0.11.0以上が必要
+    nn_params = optimize.minimize(func=nnCostFunction, x0=initial_nn_params, method="CG",
+                                  options={'maxiter':20, 'disp':True},
+                                  args=(in_size, hid_size, num_labels, X, y, lam))
+
+    # パラメータを分解
+    Theta1 = nn_params[0:(in_size + 1) * hid_size].reshape((hid_size, in_size + 1))
+    Theta2 = nn_params[(in_size + 1) * hid_size:].reshape((num_labels, hid_size + 1))
+
+    print X.shape
+    print Theta1.shape
+    displayData(Theta1[:, 1:])
