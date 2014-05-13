@@ -49,9 +49,7 @@ def safe_log(x, minval=0.0000000001):
     return np.log(x.clip(min=minval))
 
 def nnCostFunction(nn_params, *args):
-    """コスト関数Jの偏微分
-    偏微分を求めるためには各層の誤差が必要なのでbackpropagationも必要
-    Jを求めるときにforward propagationはしているので無駄あり"""
+    """NNのコスト関数とその偏微分を求める"""
     in_size, hid_size, num_labels, X, y, lam = args
 
     # ニューラルネットの全パラメータを行列形式に復元
@@ -99,10 +97,8 @@ def nnCostFunction(nn_params, *args):
         # 正則化ありのときのデルタの演算
         Theta1_grad += np.dot(delta2, a1.T)
         Theta2_grad += np.dot(delta3, a2.T)
-
     J /= m
-
-    # コスト関数の正則化項
+    # 正則化項
     temp = 0.0;
     for j in range(hid_size):
         for k in range(1, in_size + 1):  # バイアスに対応する重みは加えない
@@ -122,8 +118,10 @@ def nnCostFunction(nn_params, *args):
     grad = np.hstack((np.ravel(Theta1_grad), np.ravel(Theta2_grad)))
 
     print J
-
     return J, grad
+
+def predict(Theta1, Theta2, X):
+    pass
 
 if __name__ == "__main__":
     in_size = 64
@@ -167,6 +165,11 @@ if __name__ == "__main__":
     Theta1 = nn_params[0:(in_size + 1) * hid_size].reshape((hid_size, in_size + 1))
     Theta2 = nn_params[(in_size + 1) * hid_size:].reshape((num_labels, hid_size + 1))
 
+    # 隠れユニットを可視化
     print X.shape
     print Theta1.shape
     displayData(Theta1[:, 1:])
+
+    # 訓練データのラベルを予測して精度を求める
+    pred = predict(Theta1, Theta2, X)
+    print "Training Set Accuracy: "
