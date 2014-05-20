@@ -4,9 +4,10 @@ from scipy import optimize
 from matplotlib import pyplot
 from sklearn.datasets import load_digits, fetch_mldata
 from sklearn.preprocessing import LabelBinarizer
+from sklearn.metrics import confusion_matrix, classification_report
 
 """
-多層パーセプトロンによる手書き文字認識
+正則化多層パーセプトロンによる手書き文字認識
 ・バッチ処理
 ・共役勾配法（Conjugate Gradient Method）によるパラメータ最適化
 """
@@ -24,7 +25,6 @@ def displayData(X):
         pyplot.subplot(10, 10, index + 1)
         pyplot.axis('off')
         image = data.reshape((8, 8))
-        print image.shape
         pyplot.imshow(image, cmap=pyplot.cm.gray_r,
                      interpolation='nearest')
     pyplot.show()
@@ -98,6 +98,7 @@ def nnCostFunction(nn_params, *args):
         Theta1_grad += np.dot(delta2, a1.T)
         Theta2_grad += np.dot(delta3, a2.T)
     J /= m
+
     # 正則化項
     temp = 0.0;
     for j in range(hid_size):
@@ -121,7 +122,16 @@ def nnCostFunction(nn_params, *args):
     return J, grad
 
 def predict(Theta1, Theta2, X):
-    pass
+    m = X.shape[0]
+    num_labels = Theta2.shape[0]
+    # forward propagation
+    X = np.hstack((np.ones((m, 1)), X))
+    h1 = sigmoid(np.dot(X, Theta1.T))
+
+    h1 = np.hstack((np.ones((m, 1)), h1))
+    h2 = sigmoid(np.dot(h1, Theta2.T))
+
+    return np.argmax(h2, axis=1)
 
 if __name__ == "__main__":
     in_size = 64
@@ -135,16 +145,14 @@ if __name__ == "__main__":
     y = digits.target
 
     # データを可視化
-#    displayData(X)
+    displayData(X)
 
     # パラメータをランダムに初期化
     initial_Theta1 = randInitializeWeights(in_size, hid_size)
     initial_Theta2 = randInitializeWeights(hid_size, num_labels)
-    # 行列ではなくベクトルに展開
+
+    # パラメータをベクトルにフラット化
     initial_nn_params = np.hstack((np.ravel(initial_Theta1), np.ravel(initial_Theta2)))
-    print initial_Theta1.shape
-    print initial_Theta2.shape
-    print initial_nn_params.shape
 
     # 正則化係数
     lam = 1.0
@@ -154,22 +162,23 @@ if __name__ == "__main__":
     print "initial cost:", J
 
     # Conjugate Gradientでパラメータ推定
-    # NNはコスト関数と偏微分の計算を同じ関数（nnCostFunction）で行うので
-    # fmin_cgではなくminimizeを使用する
+    # NNはコスト関数と偏微分の計算が重複するため同じ関数（nnCostFunction）にまとめている
+    # この場合、fmin_cgではなくminimizeを使用するとよい
     # minimize()はscipy 0.11.0以上が必要
-    nn_params = optimize.minimize(func=nnCostFunction, x0=initial_nn_params, method="CG", jac=True,
+    res = optimize.minimize(fun=nnCostFunction, x0=initial_nn_params, method="CG", jac=True,
                                   options={'maxiter':20, 'disp':True},
                                   args=(in_size, hid_size, num_labels, X, y, lam))
+    nn_params = res.x
 
     # パラメータを分解
     Theta1 = nn_params[0:(in_size + 1) * hid_size].reshape((hid_size, in_size + 1))
     Theta2 = nn_params[(in_size + 1) * hid_size:].reshape((num_labels, hid_size + 1))
 
     # 隠れユニットを可視化
-    print X.shape
-    print Theta1.shape
     displayData(Theta1[:, 1:])
 
     # 訓練データのラベルを予測して精度を求める
     pred = predict(Theta1, Theta2, X)
-    print "Training Set Accuracy: "
+    print confusion_matrix(y, pred)
+    print classification_report(y, pred)
+
