@@ -24,7 +24,7 @@ def displayData(X):
     for index, data in enumerate(X):
         pyplot.subplot(10, 10, index + 1)
         pyplot.axis('off')
-        image = data.reshape((8, 8))
+        image = data.reshape((28, 28))
         pyplot.imshow(image, cmap=pyplot.cm.gray_r,
                      interpolation='nearest')
     pyplot.show()
@@ -134,18 +134,29 @@ def predict(Theta1, Theta2, X):
     return np.argmax(h2, axis=1)
 
 if __name__ == "__main__":
-    in_size = 64
+    # 入力層のユニット数
+    in_size = 28 * 28
+
+    # 隠れ層のユニット数
     hid_size = 25
+
+    # 出力層のユニット数（＝ラベル数）
     num_labels = 10
 
     # 訓練データをロード
-    digits = load_digits()
+    digits = fetch_mldata('MNIST original', data_home=".")
     X = digits.data
+    X = X.astype(np.float64)
     X /= X.max()
     y = digits.target
 
+    # ランダムに5000サンプルを選択
+    p = np.random.random_integers(0, len(X) - 1, 5000)
+    X_train = X[p, :]
+    y_train = y[p]
+
     # データを可視化
-    displayData(X)
+    displayData(X_train)
 
     # パラメータをランダムに初期化
     initial_Theta1 = randInitializeWeights(in_size, hid_size)
@@ -153,12 +164,13 @@ if __name__ == "__main__":
 
     # パラメータをベクトルにフラット化
     initial_nn_params = np.hstack((np.ravel(initial_Theta1), np.ravel(initial_Theta2)))
+    print initial_nn_params.shape
 
     # 正則化係数
     lam = 1.0
 
     # 初期状態のコストを計算
-    J, grad = nnCostFunction(initial_nn_params, in_size, hid_size, num_labels, X, y, lam)
+    J, grad = nnCostFunction(initial_nn_params, in_size, hid_size, num_labels, X_train, y_train, lam)
     print "initial cost:", J
 
     # Conjugate Gradientでパラメータ推定
@@ -166,8 +178,8 @@ if __name__ == "__main__":
     # この場合、fmin_cgではなくminimizeを使用するとよい
     # minimize()はscipy 0.11.0以上が必要
     res = optimize.minimize(fun=nnCostFunction, x0=initial_nn_params, method="CG", jac=True,
-                                  options={'maxiter':20, 'disp':True},
-                                  args=(in_size, hid_size, num_labels, X, y, lam))
+                                  options={'maxiter':100, 'disp':True},
+                                  args=(in_size, hid_size, num_labels, X_train, y_train, lam))
     nn_params = res.x
 
     # パラメータを分解
@@ -178,7 +190,16 @@ if __name__ == "__main__":
     displayData(Theta1[:, 1:])
 
     # 訓練データのラベルを予測して精度を求める
-    pred = predict(Theta1, Theta2, X)
-    print confusion_matrix(y, pred)
-    print classification_report(y, pred)
+    pred = predict(Theta1, Theta2, X_train)
+    print "*** training set accuracy"
+    print confusion_matrix(y_train, pred)
+    print classification_report(y_train, pred)
 
+    # ランダムにテストデータを選んで精度を求める
+    print "*** test set accuracy"
+    p = np.random.random_integers(0, len(X), 2000)
+    X_test = X[p, :]
+    y_test = y[p]
+    pred = predict(Theta1, Theta2, X_test)
+    print confusion_matrix(y_test, pred)
+    print classification_report(y_test, pred)
