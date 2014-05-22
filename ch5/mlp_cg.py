@@ -118,7 +118,7 @@ def nnCostFunction(nn_params, *args):
     # ベクトルに変換
     grad = np.hstack((np.ravel(Theta1_grad), np.ravel(Theta2_grad)))
 
-    print J
+    print "J =", J
     return J, grad
 
 def predict(Theta1, Theta2, X):
@@ -150,10 +150,14 @@ if __name__ == "__main__":
     X /= X.max()
     y = digits.target
 
-    # ランダムに5000サンプルを選択
-    p = np.random.random_integers(0, len(X) - 1, 5000)
-    X_train = X[p, :]
-    y_train = y[p]
+    # データをシャッフル
+    p = np.random.permutation(len(X))
+    X = X[p, :]
+    y = y[p]
+
+    # 最初の5000サンプルを選択
+    X_train = X[:5000, :]
+    y_train = y[:5000]
 
     # データを可視化
     displayData(X_train)
@@ -164,21 +168,19 @@ if __name__ == "__main__":
 
     # パラメータをベクトルにフラット化
     initial_nn_params = np.hstack((np.ravel(initial_Theta1), np.ravel(initial_Theta2)))
-    print initial_nn_params.shape
 
     # 正則化係数
     lam = 1.0
 
     # 初期状態のコストを計算
     J, grad = nnCostFunction(initial_nn_params, in_size, hid_size, num_labels, X_train, y_train, lam)
-    print "initial cost:", J
 
     # Conjugate Gradientでパラメータ推定
     # NNはコスト関数と偏微分の計算が重複するため同じ関数（nnCostFunction）にまとめている
     # この場合、fmin_cgではなくminimizeを使用するとよい
     # minimize()はscipy 0.11.0以上が必要
     res = optimize.minimize(fun=nnCostFunction, x0=initial_nn_params, method="CG", jac=True,
-                                  options={'maxiter':100, 'disp':True},
+                                  options={'maxiter':70, 'disp':True},
                                   args=(in_size, hid_size, num_labels, X_train, y_train, lam))
     nn_params = res.x
 
@@ -195,11 +197,11 @@ if __name__ == "__main__":
     print confusion_matrix(y_train, pred)
     print classification_report(y_train, pred)
 
-    # ランダムにテストデータを選んで精度を求める
+    # 訓練データとかぶらない範囲からテストデータを選んで精度を求める
     print "*** test set accuracy"
-    p = np.random.random_integers(0, len(X), 2000)
-    X_test = X[p, :]
-    y_test = y[p]
+    X_test = X[10000:12000, :]
+    y_test = y[10000:12000]
     pred = predict(Theta1, Theta2, X_test)
+    print len(pred)
     print confusion_matrix(y_test, pred)
     print classification_report(y_test, pred)
