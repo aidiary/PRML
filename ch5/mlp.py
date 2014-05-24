@@ -16,14 +16,16 @@ forループの代わりに行列演算にした高速化版
 def tanh(x):
     return np.tanh(x)
 
+# このスクリプトではxにtanhを通した値を与えることを仮定
 def tanh_deriv(x):
     return 1.0 - x ** 2
 
 def sigmoid(x):
     return 1 / (1 + np.exp(-x))
 
+# このスクリプトではxにsigmoidを通した値を与えることを仮定
 def sigmoid_deriv(x):
-    return sigmoid(x) * (1 - sigmoid(x))
+    return x * (1 - x)
 
 def identity(x):
     return x
